@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="UTF-8">
+    <title>web Audio</title>
+  </head>
+  <body>
+
+  <div id="player"></div>
+  <div id="stream" style="width: 100%; word-wrap: break-word;"></div>
+
+<script>
+(function() {
+
+  var music, context, analyser, source, stream
+  var streamBox = document.getElementById( 'stream' )
+  var playerBox = document.getElementById( 'player' )
+  var scale = 20
+
+  var AudioContext = window.AudioContext // Default
+      || window.webkitAudioContext // Safari and old versions of Chrome
+      || false
+
+  if (AudioContext) {
+      // Do whatever you want using the Web Audio API
+      context = new AudioContext
+  } else {
+      // Web Audio API is not supported
+      // Alert the user
+      alert("Sorry, but the Web Audio API is not supported by your browser. Please, consider upgrading to the latest version or downloading Google Chrome or Mozilla Firefox")
+  }
+
+  music = new Audio()
+  music.src = 'sounds/RedStreams-jukedeck.mp3'
+  music.controls = true
+  music.autoplay = false
+
+  music.onplay = function(){
+    frameLoop()
+  }
+
+  music.onpause = function(){
+    window.cancelAnimationFrame( frameLoop )
+
+  }
+
+  playerBox.appendChild(music)
+
+  analyser = context.createAnalyser()
+  source = context.createMediaElementSource( music )
+  source.connect(analyser)
+  analyser.connect(context.destination)
+
+  function frameLoop() {
+
+    window.requestAnimationFrame( frameLoop )
+
+    fbc_array = new Uint8Array( analyser.frequencyBinCount )
+    analyser.getByteFrequencyData( fbc_array )
+
+    bars = 100
+
+    for(var i = 0; i < bars; i++) {
+      
+      stream = fbc_array[i]
+
+      var musicBit = document.createElement("span")
+      var textSize = stream / scale
+      if( textSize <= 0 ) {
+        textSize = 1
+      }
+      musicBit.style.fontSize = textSize + "px"
+      musicBit.innerHTML = stream + ','
+      streamBox.appendChild( musicBit )
+
+    }
+
+  }
+
+})();
+</script>
+
+</script>
+</body>
+</html>
